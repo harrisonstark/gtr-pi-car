@@ -23,8 +23,7 @@ def gen_frames():
             break
 
          # Overlay text on the frame
-        event_to_display = globals_instance.current_event if globals_instance.current_event == None else globals_instance.current_event["event"]
-        overlay_text = f"Current event: {event_to_display}"
+        overlay_text = f"Current event: {globals_instance.current_event}"
         font = cv2.FONT_HERSHEY_SIMPLEX
         font_scale = 1
         color = (0, 255, 0)  # Green color in BGR
