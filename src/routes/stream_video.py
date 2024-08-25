@@ -26,7 +26,7 @@ def gen_frames():
         overlay_text = f"Current event: {globals_instance.current_event}"
         font = cv2.FONT_HERSHEY_SIMPLEX
         font_scale = 1
-        color = (0, 255, 0)  # Green color in BGR
+        color = (0, 0, 0)  # Black color in BGR
         thickness = 2
         position = (10, 30)  # Top-left corner of the frame
 
