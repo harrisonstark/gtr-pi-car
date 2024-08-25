@@ -14,4 +14,4 @@ RUN pip install -r requirements.txt
 EXPOSE 7171
 
 # Run app.py when the container launches
-CMD ["uvicorn", "src.app:app", "--host", "0.0.0.0", "--port", "7171"]
+CMD ["uvicorn", "src.app:app", "--host", "0.0.0.0", "--port", "7171", "--reload"]

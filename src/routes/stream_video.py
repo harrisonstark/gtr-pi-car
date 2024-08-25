@@ -2,6 +2,7 @@ import cv2
 from fastapi import APIRouter, Request
 from fastapi.responses import StreamingResponse
 from src.utils.logger import configure_logging
+from src.utils.globals import globals_instance
 
 # Set up custom logger for error logging
 log = configure_logging()
@@ -20,6 +21,19 @@ def gen_frames():
         if not success:
             log.error("Failed to capture frame")
             break
+
+         # Overlay text on the frame
+        event_to_display = globals_instance.current_event if globals_instance.current_event == None else globals_instance.current_event["event"]
+        overlay_text = f"Current event: {event_to_display}"
+        font = cv2.FONT_HERSHEY_SIMPLEX
+        font_scale = 1
+        color = (0, 255, 0)  # Green color in BGR
+        thickness = 2
+        position = (10, 30)  # Top-left corner of the frame
+
+        # Put the overlay text on the frame
+        cv2.putText(frame, overlay_text, position, font, font_scale, color, thickness, cv2.LINE_AA)
+
 
         # Encode the frame as JPEG
         ret, buffer = cv2.imencode('.jpg', frame)
