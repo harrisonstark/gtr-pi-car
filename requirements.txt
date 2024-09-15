@@ -3,3 +3,4 @@ motor==3.5.1
 pymongo==4.8.0
 python-dotenv==1.0.0
 uvicorn==0.22.0
+opencv-python==4.10.0.84

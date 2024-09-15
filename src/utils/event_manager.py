@@ -13,5 +13,8 @@ def process_events():
             time.sleep(1)
 
 def start_event_processor():
-    event_processor_thread = threading.Thread(target=process_events)
-    event_processor_thread.start()
+    globals_instance.event_processing_thread = threading.Thread(target=process_events)
+    globals_instance.event_processing_thread.start()
+
+def stop_event_processor():
+    globals_instance.event_processing_thread.join()

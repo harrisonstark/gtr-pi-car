@@ -1,51 +1,43 @@
+import time
 import cv2
 from fastapi import APIRouter, Request
 from fastapi.responses import StreamingResponse
-from src.utils.logger import configure_logging
 from src.utils.globals import globals_instance
+import logging
+from src.utils.threaded_camera import ThreadedCamera
 
-# Set up custom logger for error logging
-log = configure_logging()
-
+logger = logging.getLogger('uvicorn.error')
 router = APIRouter()
 
+cap = ThreadedCamera()
+
 def gen_frames():
-    """Generate frames from the webcam."""
-    cap = cv2.VideoCapture(0)  # 0 is usually the default camera
-    if not cap.isOpened():
-        log.error("Unable to open webcam")
-        raise RuntimeError("Could not start video capture")
-
     while True:
-        success, frame = cap.read()
-        if not success:
-            log.error("Failed to capture frame")
-            break
+        frame = cap.get_frame()
+        if frame is None:
+            logger.error("Failed to capture frame")
+            continue
 
-         # Overlay text on the frame
+        frame = cv2.resize(frame, (240, 160))
+
         overlay_text = f"Current event: {globals_instance.current_event}"
         font = cv2.FONT_HERSHEY_SIMPLEX
-        font_scale = 1
-        color = (0, 0, 0)  # Black color in BGR
+        font_scale = .5
+        color = (0, 0, 0)
         thickness = 2
-        position = (10, 30)  # Top-left corner of the frame
+        position = (5, 15)
 
-        # Put the overlay text on the frame
         cv2.putText(frame, overlay_text, position, font, font_scale, color, thickness, cv2.LINE_AA)
 
-
-        # Encode the frame as JPEG
-        ret, buffer = cv2.imencode('.jpg', frame)
+        ret, buffer = cv2.imencode('.jpg', frame, [cv2.IMWRITE_JPEG_QUALITY, 50])
         if not ret:
-            log.error("Failed to encode frame")
-            break
+            logger.error("Failed to encode frame")
+            continue
 
-        # Convert the encoded frame to bytes and yield
-        frame = buffer.tobytes()
+        frame_bytes = buffer.tobytes()
         yield (b'--frame\r\n'
-               b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
-
-    cap.release()
+               b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
+        time.sleep(.25)
 
 @router.get("/stream_video")
 async def stream_video(request: Request):

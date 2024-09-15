@@ -2,7 +2,7 @@ from fastapi import FastAPI
 import logging
 from fastapi.middleware.cors import CORSMiddleware
 from src.routes import healthcheck, push_event, stream_video
-from src.utils.event_manager import start_event_processor
+from src.utils.event_manager import start_event_processor, stop_event_processor
 
 logger = logging.getLogger('uvicorn.error')
 logger.setLevel(logging.DEBUG)
@@ -24,6 +24,10 @@ app.add_middleware(
 @app.on_event("startup")
 async def startup_event():
     start_event_processor()
+
+@app.on_event("shutdown")
+def shutdown_event():
+    stop_event_processor()
 
 # Include the routes from the imported endpoint modules
 app.include_router(healthcheck.router)
