@@ -3,7 +3,7 @@ import cv2
 
 class ThreadedCamera:
     def __init__(self, src=0):
-        self.capture = cv2.VideoCapture(src, cv2.CAP_DSHOW)
+        self.capture = cv2.VideoCapture(src)
         self.frame = None
         self.lock = Lock()
         self._running = True
