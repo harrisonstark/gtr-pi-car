@@ -12,6 +12,7 @@ pymongo = "^4.8.0"
 python-dotenv = "^1.0.0"
 uvicorn = {extras = ["standard"], version = "^0.30.0"}
 opencv-python-headless = "^4.10.0.84"
+ultralytics = "^8.4.41"
 
 [build-system]
 requires = ["poetry-core"]

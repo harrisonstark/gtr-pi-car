@@ -4,11 +4,13 @@ from fastapi import APIRouter, Request
 from fastapi.responses import StreamingResponse
 from src.utils.globals import globals_instance
 from src.utils.threaded_camera import ThreadedCamera
+from ultralytics import YOLO
 import logging
 
 logger = logging.getLogger("uvicorn.error")
 router = APIRouter()
 cap = ThreadedCamera()
+model = YOLO("yolov8n.pt")
 
 async def gen_frames(request: Request):
     while True:
@@ -20,8 +22,18 @@ async def gen_frames(request: Request):
             await asyncio.sleep(0.05)
             continue
 
+        results = model(frame, verbose=False)
+        for box in results[0].boxes:
+            x1, y1, x2, y2 = map(int, box.xyxy[0])
+            conf = float(box.conf[0])
+            cls = int(box.cls[0])
+            label = f"{model.names[cls]} {conf:.2f}"
+            cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
+            cv2.putText(frame, label, (x1, y1 - 5),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2, cv2.LINE_AA)
+
         cv2.putText(frame, f"Event: {globals_instance.current_event}",
-                    (5, 15), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0,0,0), 2, cv2.LINE_AA)
+                    (5, 15), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 2, cv2.LINE_AA)
 
         ret, buffer = cv2.imencode('.jpg', frame, [cv2.IMWRITE_JPEG_QUALITY, 50])
         if not ret:
@@ -30,7 +42,7 @@ async def gen_frames(request: Request):
         yield (b'--frame\r\nContent-Type: image/jpeg\r\n\r\n'
                + buffer.tobytes() + b'\r\n')
 
-        await asyncio.sleep(1/30)  # target 30fps, non-blocking
+        await asyncio.sleep(1/30)
 
 @router.get("/stream_video")
 async def stream_video(request: Request):
